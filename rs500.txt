@@ -1,0 +1,59 @@
+###################################################################################################
+#     Project: rollingStone500
+#        Date: 2017/05/21
+#      Author: Andrea Tedesco
+#     Version: 0.1
+# Description: script per scaricare i dati relativi alla classifica dei 500 migliori album di tutti
+#              i tempi
+#
+###################################################################################################
+
+CONCETTO
+========
+  La rivista Rolling Stone mantiene un'elenco dei migliori album di tutti i tempi.
+  Lo script scaricherà i contenuti ritenuti rilevanti memorizzandoli in un db sqlite.
+
+  STRUTTURA DATI
+    La pagina viene costruita dinamicamente in base allo scroll della pagina viene aggiornato il
+    div visibile.
+    Occorre prelevare il contenuto del div attuale e quindi richiamare la voce seguente mediante
+    link.
+
+    URL
+      Url: http://www.rollingstone.com/music/lists/500-greatest-albums-of-all-time-20120531
+      L'url prevede alcuni parametri:
+        - index: primo elemento della pagina a partire da 500 a scendere
+        - limit: 1 # significato non chiaro
+
+    TAG
+      - <div id="collection-items-container">: dati di una voce della classifica
+      - <A class="pagination-collection load-more">: link a prossima voce
+
+  DATABASE
+    Nome db : rs500
+    Schema:
+    Utente: sa
+    Password:'' (vuota)
+    Tabella: albums
+
+    STRUTTURA
+      Script SQL per creazione tabella:
+        CREATE TABLE albums
+        (
+          id            int NOT NULL,
+          date          datetimeNOT NULL,
+          posizione     int,
+          autore        string,
+          titolo        string,
+          anno          int,
+          descrizione   text,
+          immagine      blob
+          );
+        ALTER TABLE albums
+          ADD CONSTRAINT pk_albums
+          PRIMARY KEY (id);
+
+  SCRIPT
+
+
+
