@@ -62,7 +62,7 @@ def get_content(p_url, s_path):
             album = item.h2.getText()[apice:]
         except Exception as e:
             print "#########"
-            print e.message, e.args
+            print "Erroe di parsing campi autore e album:", e.message, e.args
             print item
             print "#########"
             author = "Errore di parsing"
@@ -71,15 +71,13 @@ def get_content(p_url, s_path):
             casa, anno = item.em.getText().split(",")
         except Exception as e:
             print "#########"
-            print e.message, e.args
+            print "Errore di parsing campi casa discografica e anno pubblicazione:", e.message, e.args
             print item
             print "#########"
             casa = "Errore di parsing"
             anno = "Errore di parsing"
         # ci sono due <p> uno con un <em> che abbiamo già preso, l'altro con la descrizione
         n = item.findAll("p")
-        # ci sono voci in cui manca il paragrafo con la casa discografica, prendo l'ultimo
-        #last_p = len(n) - 1
         desc = ""
         # capita che ci siano album senza casa discografica e anno di pubblicazione
         # se è così prendiamo l'unico che rimane per la descrizione

@@ -10,50 +10,50 @@
 
 CONCETTO
 ========
-  La rivista Rolling Stone mantiene un'elenco dei migliori album di tutti i tempi.
-  Lo script scaricherà i contenuti ritenuti rilevanti memorizzandoli in un db sqlite.
+La rivista Rolling Stone mantiene un'elenco dei migliori album di tutti i tempi.
+Lo script scaricherà i contenuti ritenuti rilevanti memorizzandoli in un db sqlite o in un file '.cvs'.
+E' previsto uno switch per gestire la sovrascrittura o l'aggiunta dei dati nel caso si rilanci lo script
+con gli stessi parametri di output.
+
 
   STRUTTURA DATI
-    La pagina viene costruita dinamicamente in base allo scroll della pagina viene aggiornato il
-    div visibile.
-    Occorre prelevare il contenuto del div attuale e quindi richiamare la voce seguente mediante
-    link.
+  La pagina viene costruita dinamicamente in base allo scroll della pagina viene aggiornato il
+  div visibile.
+  Occorre prelevare il contenuto del div attuale e quindi richiamare la voce seguente mediante
+  link.
 
     URL
-      Url: http://www.rollingstone.com/music/lists/500-greatest-albums-of-all-time-20120531
-      L'url prevede alcuni parametri:
-        - index: primo elemento della pagina a partire da 500 a scendere
-        - limit: 1 # significato non chiaro
+    Url: http://www.rollingstone.com/music/lists/500-greatest-albums-of-all-time-20120531
 
     TAG
-      - <div id="collection-items-container">: dati di una voce della classifica
-      - <A class="pagination-collection load-more">: link a prossima voce
+    - <div id="collection-items-container">: dati di una voce della classifica
+    - <A class="pagination-collection load-more">: link a prossima voce
 
   DATABASE
-    Nome db : rs500
-    Schema:
-    Utente: sa
-    Password:'' (vuota)
-    Tabella: albums
+  Nome db : rs500
+  Tabella: albums
 
     STRUTTURA
-      Script SQL per creazione tabella:
-        CREATE TABLE albums
-        (
-          id            int NOT NULL,
-          date          datetimeNOT NULL,
-          posizione     int,
-          autore        string,
-          titolo        string,
-          anno          int,
-          descrizione   text,
-          immagine      blob
-          );
-        ALTER TABLE albums
-          ADD CONSTRAINT pk_albums
-          PRIMARY KEY (id);
+    Script SQL per creazione tabella:
+      CREATE TABLE albums
+      (
+        id            int NOT NULL,
+        date          datetimeNOT NULL,
+        posizione     int,
+        autore        string,
+        titolo        string,
+        anno          int,
+        descrizione   text,
+        immagine      blob
+      );
+      ALTER TABLE albums
+      ADD CONSTRAINT pk_albums
+      PRIMARY KEY (id);
 
   SCRIPT
+  Lo script usa Beautiful Soup per fare il parsing degli elementi interessanti.
+  A causa di alcune inconsistenze nell'html generato dal sito sono previsti alcuni controlli
+  supplementari.
 
 
 
