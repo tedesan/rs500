@@ -1,5 +1,7 @@
 # coding=utf-8
 
+# TODO: translate to english all the texts
+
 """
 
 Script per scaricare la classifica dei migliori 500 album secondo Rolling Stone
@@ -10,6 +12,7 @@ import urllib2
 import os
 import time
 import sys
+import sqlite3 as dbapi
 
 
 def get_page(b_url, s_path):
@@ -40,6 +43,7 @@ def get_content(p_url, s_path):
     :param s_path: path relativo
     :return: dizionario di dizionari
     """
+    # TODO: controllare pos 69 Guns&Roses: parsing errato; controllare pos 458
     top500 = {}  # here we store the data
     next_i = True  # starting position
     while next_i:
@@ -57,6 +61,7 @@ def get_content(p_url, s_path):
         dot = item.h2.getText().find(".") + 1
         # alcuni autori hanno la vorgola nel nome, per separarli dall'album splitto sull'apice
         apice = item.h2.getText().find("'")
+        # eccezioni previste
         try:
             author = item.h2.getText()[dot:apice - 2]  # rimuovo la virgola di separazione tra album e autore
             album = item.h2.getText()[apice:]
@@ -96,13 +101,13 @@ def get_content(p_url, s_path):
 
 def store_content(data, dest, erase):
     """
-    Funzione che memorizza il contenuto estratto
+    Funzione che memorizza il contenuto estratto in un file '.csv'
     :param data: i dati da memorizzare come dizionario di dizionario
     :param dest: il file di destinazione
     :param erase: flag per sovrascrivere il file dest se esistente
     :return:
     """
-    # se il file esiste lo cancelliamo
+    # se il file esiste lo rinominiamo e ricreiamo
     if os.path.isfile(dest) and erase:
         t = time.strftime("%Y%m%d_%H%M%S")
         os.rename(dest,dest.split(".")[0] + "_" + t + ".csv")
@@ -115,23 +120,58 @@ def store_content(data, dest, erase):
     f.close()
 
 
+def store_content_db(data, db, erase):
+    """
+    Funzione per memorizzare i dati in un db sqlite
+    :param data: i dati da memorizzare come dizionario di dizionario
+    :param db: il file sqlite
+    :param erase: flag per aggiungere i dati alla tabella se esistente
+    :return:
+    """
+    con = dbapi.Connection(db)
+    cur = con.cursor()
+    cur.execute("DROP TABLE IF EXISTS rs500")
+    cur.execute("""CREATE TABLE rs500 (id INTEGER PRIMARY KEY ASC, pos INTEGER, album TEXT, autore TEXT,
+                                      anno INTEGER, casa_disc TEXT, desc TEXT)""")
+    for i in data:
+        cur.execute("INSERT INTO rs500 VALUES(?, ?, ?, ?, ?, ?, ?)", (i, i, data[i]["album"], data[i]["author"], data[i]["anno"], data[i]["casa_disc"], data[i]["descrizione"]))
+
+    con.commit()
+    con.close()
+    print "SQLITE file:", db
+
+
 if __name__ == "__main__":
+    # TODO: inserire parametro per ricercare da una posizione specifica
+    # TODO: gestire argomenti con argparse
+    # TODO: gestire logs con logging
+
     # di default sovrascriviamo la destinazione
-    erase = True
+    new_file_flag = True
     base_url = "http://www.rollingstone.com"
     start_path = "/music/lists/500-greatest-albums-of-all-time-20120531"
-    if (len(sys.argv)) < 2:
-        print "Uso: %s [-recover] <destination file>" % sys.argv[0]
+    # nel caso di debug per non scaricare tutte le 500 voci
+    #start_path = "/music/lists/500-greatest-albums-of-all-time-20120531/the-beatles-the-white-album-20120524"
+    if (len(sys.argv)) < 3:
+        print "Uso: %s [-recover] [-f file_name] [-db sqlite_db]" % sys.argv[0]
         sys.exit()
     elif "-recover" in sys.argv:
-        erase = False
-        if sys.argv.index("-recover") == 1:
-            dest = sys.argv[2]
-        else:
-            dest = sys.argv[1]
-    else:
-        dest = sys.argv[1]
-    print "argomenti:", erase, dest
-    albums = get_content(base_url, start_path)
+        new_file_flag = False
+    try:
+        albums = get_content(base_url, start_path)
+        #albums = ""
+    except Exception as e:
+        print "Errore in fase di parsing pagina web:", e.message, e.args
     # let's store the data
-    store_content(albums, dest, erase)
+    if "-f" in sys.argv:
+        dest = sys.argv[sys.argv.index("-f") + 1]
+        try:
+            store_content(albums, dest, new_file_flag)
+        except Exception as e:
+            print "Errore in fase di memorizzazione su file:", e.message, e.args
+    if "-db" in sys.argv:
+        dest = sys.argv[sys.argv.index("-db") + 1]
+        try:
+            store_content_db(albums, dest, new_file_flag)
+        except Exception as e:
+            print "Errore in fase di memorizzazione su sqlite:", e.message, e.args
